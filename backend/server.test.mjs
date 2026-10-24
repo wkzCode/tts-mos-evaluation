@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
+import {request as httpRequest} from 'node:http';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'tts-mos-test-')),pub=path.join(root,'public'),data=path.join(root,'private'),port=18887,base=`http://127.0.0.1:${port}`;
 fs.mkdirSync(path.join(pub,'data'),{recursive:true});
 fs.writeFileSync(path.join(pub,'index.html'),'<!doctype html><title>fixture</title>');
@@ -15,11 +16,25 @@ writeManifest();
 fs.mkdirSync(path.join(pub,'audio'));
 // Non-audio marker files test only existence validation, never study playback.
 for(const p of manifest.practice)fs.writeFileSync(path.join(pub,p.audio),'test marker');
-const server=spawn(process.execPath,[new URL('./server.mjs',import.meta.url).pathname],{env:{...process.env,PORT:String(port),TTS_MOS_DATA_DIR:data,TTS_MOS_PUBLIC_DIR:pub},stdio:['ignore','pipe','pipe']});
+const urlFile=path.join(data,'current-url.txt');fs.mkdirSync(data,{recursive:true});fs.writeFileSync(urlFile,'https://current.trycloudflare.com/\n');
+const externalAddress=Object.values(os.networkInterfaces()).flat().find(x=>x?.family==='IPv4'&&!x.internal)?.address;
+const server=spawn(process.execPath,[new URL('./server.mjs',import.meta.url).pathname],{env:{...process.env,PORT:String(port),HOST:'0.0.0.0',PUBLIC_HTTPS_URL_FILE:urlFile,ALLOWED_ORIGINS:'https://research.example',TRUST_PROXY_LOOPBACK:'1',TTS_MOS_DATA_DIR:data,TTS_MOS_PUBLIC_DIR:pub},stdio:['ignore','pipe','pipe']});
 await once(server.stdout,'data');
 let token='';
-const call=async(p,method='GET',body,headers={})=>{const r=await fetch(base+p,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`} :{}),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});const text=await r.text();let value;try{value=JSON.parse(text)}catch{value=text}return {status:r.status,data:value,headers:r.headers}};
-test('persistent study API validates playback, upserts, completion, CORS and private export',async()=>{try{
+const call=async(p,method='GET',body,headers={})=>{if(headers.Host)return await new Promise((resolve,reject)=>{const req=httpRequest(base+p,{method,headers},res=>{let text='';res.setEncoding('utf8');res.on('data',chunk=>text+=chunk);res.on('end',()=>{let value;try{value=JSON.parse(text)}catch{value=text}resolve({status:res.statusCode,data:value,headers:new Headers(res.headers)})});});req.on('error',reject);req.end();});const r=await fetch(base+p,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`} :{}),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});const text=await r.text();let value;try{value=JSON.parse(text)}catch{value=text}return {status:r.status,data:value,headers:r.headers}};
+test('persistent study API validates playback, upserts, completion, CORS and private export',async t=>{try{
+ assert.equal((await call('/')).status,200);
+ assert.equal((await call('/','HEAD')).status,200);
+ const httpsRoot=await call('/','GET',undefined,{Host:'current.trycloudflare.com','x-forwarded-proto':'https',Origin:'https://current.trycloudflare.com'});assert.equal(httpsRoot.status,200);assert.equal(httpsRoot.headers.get('location'),null);
+ if(externalAddress){
+  const publicBase=`http://${externalAddress}:${port}`;
+  for(const method of ['GET','HEAD']){const r=await fetch(publicBase+'/',{method,redirect:'manual'});assert.equal(r.status,302);assert.equal(r.headers.get('location'),'https://current.trycloudflare.com/');assert.equal(r.headers.get('cache-control'),'no-store');}
+  assert.equal((await fetch(publicBase+'/index.html',{redirect:'manual'})).status,200);
+  assert.equal((await fetch(publicBase+'/api/health',{redirect:'manual'})).status,200);
+  assert.equal((await fetch(publicBase+'/',{headers:{'x-forwarded-proto':'https'},redirect:'manual'})).status,302); // external callers cannot spoof trusted HTTPS
+  for(const invalid of ['http://wrong.example/','https://wrong.example/path','https://wrong.example/?q=1','https://wrong.example/#fragment','https://wrong.example/?','https://wrong.example/#','https://@wrong.example/','https://name@wrong.example/','https://name:secret@wrong.example/','not a URL','']){fs.writeFileSync(urlFile,invalid);assert.equal((await fetch(publicBase+'/',{redirect:'manual'})).status,200);}
+  fs.unlinkSync(urlFile);assert.equal((await fetch(publicBase+'/',{redirect:'manual'})).status,200);fs.writeFileSync(urlFile,'https://current.trycloudflare.com/');
+ }else t.diagnostic('No non-loopback IPv4 interface: public redirect network checks unavailable; loopback/HTTPS checks still passed.');
  assert.equal((await call('/api/health')).data.app,'tts-mos-evaluation');
  assert.deepEqual((await call('/api/study-status')).data,{ready:false,expected:80,available:0});
  assert.equal((await call('/api/sessions','POST',{name:'test',role:'学生',device_confirmed:true})).status,503);
@@ -43,7 +58,22 @@ test('persistent study API validates playback, upserts, completion, CORS and pri
  assert.equal((await call('/api/ratings','PUT',{...rating,score:5})).status,200);
  r=await call('/api/session');assert.equal(r.data.ratings.length,1);assert.equal(r.data.ratings[0].score,5);
  assert.equal((await call('/api/health','GET',undefined,{Origin:'https://evil.example'})).status,403);
- assert.equal((await call('/api/health','GET',undefined,{Origin:'https://wkzcode.github.io'})).headers.get('access-control-allow-origin'),'https://wkzcode.github.io');
+ assert.equal((await call('/api/health','GET',undefined,{Origin:'https://wkzcode.github.io'})).status,403);
+ assert.equal((await call('/api/health','GET',undefined,{Origin:'https://research.example'})).headers.get('access-control-allow-origin'),'https://research.example');
+ assert.equal((await call('/api/health','GET',undefined,{Origin:'http://183.36.243.124:18787',Host:'183.36.243.124:18787'})).headers.get('access-control-allow-origin'),'http://183.36.243.124:18787');
+ assert.equal((await call('/api/health','GET',undefined,{Origin:'http://183.36.243.124:18788',Host:'183.36.243.124:18787'})).status,403);
+ assert.equal((await call('/api/health','GET',undefined,{Origin:'http://arbitrary.example',Host:'183.36.243.124:18787'})).status,403);
+ assert.equal((await call('/admin','GET',undefined,{Host:'183.36.243.124:18787'})).status,403);
+ const proxy={Host:'study.trycloudflare.com','x-forwarded-proto':'https'};
+ assert.equal((await call('/api/health','GET',undefined,{...proxy,Origin:'https://study.trycloudflare.com'})).headers.get('access-control-allow-origin'),'https://study.trycloudflare.com');
+ assert.equal((await call('/api/health','GET',undefined,{...proxy,Origin:'https://other.trycloudflare.com'})).status,403);
+ assert.equal((await call('/api/health','GET',undefined,{...proxy,Origin:'https://study.trycloudflare.com:444'})).status,403);
+ assert.equal((await call('/api/health','GET',undefined,{...proxy,Origin:'http://study.trycloudflare.com'})).status,403);
+ assert.equal((await call('/api/health','GET',undefined,{...proxy,'x-forwarded-proto':'https, http',Origin:'https://study.trycloudflare.com'})).status,403);
+ assert.equal((await call('/admin','GET',undefined,{Host:'127.0.0.1:'+port,'x-forwarded-proto':'https'})).status,403);
+ assert.equal((await call('/admin','GET',undefined,{Host:'127.0.0.1:'+port,Forwarded:'proto=https'})).status,403);
+ assert.equal((await call('/admin','GET',undefined,{Host:'127.0.0.1:'+port,'x-forwarded-host':'public.example'})).status,403);
+ assert.equal((await call('/admin','GET',undefined,{Host:'127.0.0.1:'+port,'cf-ray':'test-marker'})).status,403);
  assert.equal((await call('/api/admin/summary')).status,401);
  const admin=fs.readFileSync(path.join(data,'admin-token.txt'),'utf8');
  const adminHeaders={Authorization:`Bearer ${admin}`};

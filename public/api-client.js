@@ -1,5 +1,5 @@
 // Runtime discovery is bounded and only runs at startup, explicit reconnect, or failure.
-export function createApiClient({fetcher=globalThis.fetch.bind(globalThis),getToken=()=>'',remoteConfig=false,timeoutMs=15000,configTimeoutMs=4000}={}){
+export function createApiClient({fetcher=globalThis.fetch.bind(globalThis),getToken=()=>'',fallbackConfigUrl='',timeoutMs=15000,configTimeoutMs=4000}={}){
  let base='',configured=false,sourcePriority=0,refreshing=null;
  async function fetchJson(url,options={},timeout=timeoutMs){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
@@ -16,10 +16,10 @@ export function createApiClient({fetcher=globalThis.fetch.bind(globalThis),getTo
   refreshing=(async()=>{
    const page=fetchJson('data/runtime.json?t='+Date.now(),{cache:'no-store'},configTimeoutMs).then(data=>({base:readBase(data),priority:1}));
    const jobs=[page];
-   if(remoteConfig)jobs.push(fetchJson('https://api.github.com/repos/wkzCode/tts-mos-evaluation/contents/public/data/runtime.json',{cache:'no-store',headers:{Accept:'application/vnd.github.raw+json'}},configTimeoutMs).then(data=>{if(data.content)data=JSON.parse(atob(data.content.replace(/\n/g,'')));return {base:readBase(data),priority:2};}));
+   if(fallbackConfigUrl)jobs.push(fetchJson(fallbackConfigUrl,{cache:'no-store',headers:{Accept:'application/json'}},configTimeoutMs).then(data=>{if(data.content)data=JSON.parse(atob(data.content.replace(/\n/g,'')));return {base:readBase(data),priority:2};}));
    const results=await Promise.allSettled(jobs),valid=results.filter(r=>r.status==='fulfilled').map(r=>r.value).sort((a,b)=>b.priority-a.priority);
    if(!valid.length)throw Error('无法刷新连接配置，请检查网络后重试。');
-   // Once a current GitHub config is known, stale Pages data cannot replace it.
+   // An explicitly configured fallback remains preferred over a stale primary file.
    if(valid[0].priority>=sourcePriority){base=valid[0].base;sourcePriority=valid[0].priority;configured=true;}
    return base;
   })();

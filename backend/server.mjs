@@ -6,7 +6,8 @@ import {fileURLToPath} from 'node:url';
 import {randomBytes,randomUUID,timingSafeEqual} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 const ROOT=fs.realpathSync(path.resolve(process.env.TTS_MOS_PUBLIC_DIR||path.join(path.dirname(fileURLToPath(import.meta.url)),'../public')));
-const DATA=path.resolve(process.env.TTS_MOS_DATA_DIR||path.join(os.homedir(),'Library/Application Support/TTS-MOS'));
+const DEFAULT_DATA=os.platform()==='darwin'?path.join(os.homedir(),'Library/Application Support/TTS-MOS'):path.join(process.env.XDG_DATA_HOME||path.join(os.homedir(),'.local/share'),'tts-mos');
+const DATA=path.resolve(process.env.TTS_MOS_DATA_DIR||DEFAULT_DATA);
 const PROJECT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 if(DATA===ROOT||DATA.startsWith(ROOT+path.sep)||DATA===PROJECT||DATA.startsWith(PROJECT+path.sep))throw Error('Data directory must be outside the source repository and public');
 fs.mkdirSync(DATA,{recursive:true,mode:0o700});
@@ -18,7 +19,7 @@ const adminFile=path.join(DATA,'admin-token.txt');
 if(!fs.existsSync(adminFile))fs.writeFileSync(adminFile,randomBytes(32).toString('hex'),{mode:0o600});
 const ADMIN=fs.readFileSync(adminFile,'utf8').trim();
 const PORT=Number(process.env.PORT||8787), HOST=process.env.HOST||'127.0.0.1';
-const allowed=new Set(['https://wkzcode.github.io',`http://localhost:${PORT}`,`http://127.0.0.1:${PORT}`,...(process.env.ALLOWED_ORIGINS||'').split(',').filter(Boolean)].map(s=>new URL(s).origin));
+const allowed=new Set([`http://localhost:${PORT}`,`http://127.0.0.1:${PORT}`,...(process.env.ALLOWED_ORIGINS||'').split(',').filter(Boolean)].map(s=>new URL(s).origin));
 const study=()=>JSON.parse(fs.readFileSync(path.join(ROOT,'data/study.json'),'utf8'));
 const now=()=>new Date().toISOString();
 const fail=(status,message)=>Object.assign(new Error(message),{status});
@@ -26,7 +27,9 @@ const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application
 const body=async req=>{let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>16384)throw fail(413,'请求过大');chunks.push(chunk)}try{return JSON.parse(Buffer.concat(chunks).toString())}catch{throw fail(400,'无效JSON')}};
 const clean=(v,max=80)=>typeof v==='string'?v.trim().slice(0,max):'';
 const session=req=>{const token=(req.headers.authorization||'').replace(/^Bearer /,'');const s=db.prepare('SELECT * FROM sessions WHERE token=?').get(token);if(!s)throw fail(401,'测评凭证无效，请使用原浏览器恢复');return s;};
-const local=req=>['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress)&&!req.headers['cf-connecting-ip']&&!req.headers['x-forwarded-for']&&['localhost','127.0.0.1','[::1]'].includes((req.headers.host||'').replace(/:\d+$/,''));
+const isLoopback=req=>['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
+const requestProtocol=req=>{const forwarded=req.headers['x-forwarded-proto'];return process.env.TRUST_PROXY_LOOPBACK==='1'&&isLoopback(req)&&['http','https'].includes(forwarded)?forwarded:req.socket.encrypted?'https':'http';};
+const local=req=>isLoopback(req)&&!Object.keys(req.headers).some(h=>h==='forwarded'||h.startsWith('x-forwarded-')||h.startsWith('cf-'))&&['localhost','127.0.0.1','[::1]'].includes((req.headers.host||'').replace(/:\d+$/,''));
 const admin=req=>{if(!local(req))throw fail(403,'管理功能仅限本机访问');const t=(req.headers.authorization||'').replace(/^Bearer /,'');if(Buffer.byteLength(t)!==Buffer.byteLength(ADMIN)||!timingSafeEqual(Buffer.from(t),Buffer.from(ADMIN)))throw fail(401,'管理凭证无效');};
 function shuffled(ids){const a=[...ids];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
 function audioAvailable(sample,requireDuration=true){
@@ -42,14 +45,19 @@ function studyStatus(st){
  return {ready:st.materials_status!=='pending'&&structure&&available===80&&practices,expected:80,available};
 }
 function ready(st){if(!studyStatus(st).ready)throw fail(503,'正式音频准备中，暂未开放评分');}
+function publicHttpsUrl(){
+ const filename=process.env.PUBLIC_HTTPS_URL_FILE;if(!filename)return null;
+ try{if(fs.statSync(filename).size>4096)return null;const raw=fs.readFileSync(filename,'utf8').trim();if(/[\s?#@]/.test(raw))return null;const url=new URL(raw);if(url.protocol!=='https:'||!url.hostname||url.username||url.password||url.pathname!=='/'||url.search||url.hash)return null;return url.origin+'/';}catch{return null;}
+}
 function csv(rows){return '\uFEFF'+rows.map(row=>row.map(v=>{let s=String(v??'');if(/^[\s]*[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}).join(',')).join('\r\n');}
 function rawRows(){return db.prepare(`SELECT s.id,s.role,s.name,s.organization,s.created_at,s.completed_at,r.sample_id,r.score,r.listened_seconds,r.duration_seconds,r.updated_at FROM sessions s LEFT JOIN ratings r ON r.session_id=s.id ORDER BY s.created_at,r.sample_id`).all();}
 function summary(){const st=study();let key={};try{key=JSON.parse(fs.readFileSync(path.join(DATA,'study-key.json'),'utf8')).systems||{}}catch{}const rows=db.prepare('SELECT r.* FROM ratings r JOIN sessions s ON s.id=r.session_id WHERE s.completed_at IS NOT NULL AND s.study_id=?').all(st.study_id);const sampleMap=new Map(st.samples.map(s=>[s.id,s]));const groups={};for(const r of rows){const sample=sampleMap.get(r.sample_id);if(!sample)continue;const system=key[r.sample_id]||'unmapped',k=system+'|'+sample.text_id;const g=groups[k]||={system,text_id:sample.text_id,n:0,sum:0};g.n++;g.sum+=r.score;}const by_text=Object.values(groups).map(g=>({system:g.system,text_id:g.text_id,n:g.n,mean:g.sum/g.n}));const by_system=[];for(const system of new Set(by_text.map(x=>x.system))){const cells=by_text.filter(x=>x.system===system);by_system.push({system,texts:cells.length,ratings:cells.reduce((a,x)=>a+x.n,0),mean:cells.reduce((a,x)=>a+x.mean,0)/cells.length})}return {completed_sessions:db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE completed_at IS NOT NULL AND study_id=?').get(st.study_id).n,by_text,by_system,note:'仅统计完整提交；系统均值对有评分文本等权。重复听者的统计推断应按参与者聚类。'};}
 const server=http.createServer(async(req,res)=>{try{
  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
- const origin=req.headers.origin;if(origin){let normalized;try{normalized=new URL(origin).origin}catch{throw fail(403,'来源无效')}if(!allowed.has(normalized))throw fail(403,'不允许的来源');res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');res.setHeader('Access-Control-Allow-Methods','GET,POST,PUT,OPTIONS');res.setHeader('Access-Control-Allow-Headers','Content-Type,Authorization');}
+ const origin=req.headers.origin;if(origin){let normalized;try{normalized=new URL(origin).origin}catch{throw fail(403,'来源无效')}const sameOrigin=new URL(`${requestProtocol(req)}://${req.headers.host}`).origin;if(normalized!==sameOrigin&&!allowed.has(normalized))throw fail(403,'不允许的来源');res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');res.setHeader('Access-Control-Allow-Methods','GET,POST,PUT,OPTIONS');res.setHeader('Access-Control-Allow-Headers','Content-Type,Authorization');}
  if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
  const url=new URL(req.url,'http://localhost'),p=url.pathname;
+ if(p==='/'&&['GET','HEAD'].includes(req.method)&&!isLoopback(req)&&requestProtocol(req)!=='https'){const target=publicHttpsUrl();if(target){res.writeHead(302,{'Location':target,'Cache-Control':'no-store'});res.end();return;}}
  if(p==='/api/health'){json(res,200,{ok:true,app:"tts-mos-evaluation",version:1});return;}
  if(p==='/api/study-status'&&req.method==='GET'){json(res,200,studyStatus(study()));return;}
  if(p==='/api/sessions'&&req.method==='POST'){const st=study();ready(st);const b=await body(req);const name=clean(b.name),role=clean(b.role);if(!name||!role||b.device_confirmed!==true)throw fail(400,'请填写姓名、身份并完成设备确认');const id=randomUUID(),token=randomBytes(32).toString('hex'),order=shuffled(st.samples.map(s=>s.id));db.prepare('INSERT INTO sessions(id,token,study_id,role,name,organization,created_at,order_json) VALUES(?,?,?,?,?,?,?,?)').run(id,token,st.study_id,role,name,clean(b.organization),now(),JSON.stringify(order));json(res,201,{id,token,order,study_id:st.study_id});return;}

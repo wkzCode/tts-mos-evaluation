@@ -5,7 +5,7 @@ let KEY='';
 let study,materialState=null,connectionError='',previewOnly=false,state=null,index=0,practiceIndex=0,mode='welcome',audio=null,heard=false,listened=0,lastTime=0,selected=null,saveBusy=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const saveLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch{showError('浏览器无法保存恢复记录，请保留此页面并下载备份。');return false}};
-const api=createApiClient({getToken:()=>state?.token||'',remoteConfig:location.hostname.toLowerCase()==='wkzcode.github.io'});
+const api=createApiClient({getToken:()=>state?.token||''});
 const request=(path,options)=>api.request(path,options);
 function showError(text){let el=document.querySelector('#error');if(!el){el=document.createElement('p');el.id='error';el.className='error';app.append(el)}el.textContent=text;el.scrollIntoView({block:'nearest'});}
 function setStatus(text){const el=document.querySelector('#status');if(el)el.textContent=text;}

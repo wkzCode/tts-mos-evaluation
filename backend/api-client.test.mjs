@@ -6,7 +6,7 @@ const github=url=>url.startsWith('https://api.github.com/');
 const page=url=>url.startsWith('data/runtime.json');
 test('latest GitHub runtime wins at startup and cannot regress to stale Pages on reconnect',async()=>{
  let remote=true,calls=0;
- const client=createApiClient({remoteConfig:true,fetcher:async url=>{calls++;if(page(url))return response({apiBase:'https://stale.example'});if(github(url)){if(!remote)throw new TypeError('offline');return response({apiBase:'https://new.example'});}assert.equal(url,'https://new.example/api/session');return response({ok:true});}});
+ const client=createApiClient({fallbackConfigUrl:'https://api.github.com/repos/example/study/contents/runtime.json',fetcher:async url=>{calls++;if(page(url))return response({apiBase:'https://stale.example'});if(github(url)){if(!remote)throw new TypeError('offline');return response({apiBase:'https://new.example'});}assert.equal(url,'https://new.example/api/session');return response({ok:true});}});
  await client.refresh();assert.equal(client.getBase(),'https://new.example');remote=false;await client.refresh();assert.equal(client.getBase(),'https://new.example');const before=calls;assert.equal((await client.request('/api/session')).ok,true);assert.equal(calls,before+1);
 });
 test('GET and PUT await changed runtime and retry once after network failure',async()=>{
@@ -27,7 +27,7 @@ test('validation errors are preserved and do not trigger discovery',async()=>{
  await client.refresh();await assert.rejects(client.request('/api/ratings',{method:'PUT'}),/请完整听完/);assert.equal(configCalls,1);
 });
 test('bounded GitHub timeout falls back to Pages and startup failure remains visible',async()=>{
- const client=createApiClient({remoteConfig:true,configTimeoutMs:15,fetcher:async(url,options)=>{if(page(url))return response({apiBase:'https://page.example'});return await new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(Object.assign(Error('timeout'),{name:'AbortError'}))));}});
+ const client=createApiClient({fallbackConfigUrl:'https://api.github.com/repos/example/study/contents/runtime.json',configTimeoutMs:15,fetcher:async(url,options)=>{if(page(url))return response({apiBase:'https://page.example'});return await new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(Object.assign(Error('timeout'),{name:'AbortError'}))));}});
  await client.refresh();assert.equal(client.getBase(),'https://page.example');
  const failed=createApiClient({fetcher:async()=>{throw new TypeError('offline')}});await assert.rejects(failed.refresh(),/无法刷新连接配置/);
 });
@@ -40,4 +40,9 @@ test('proxy HTML error triggers config refresh and explicit completion is safely
  let address='https://old.example',requests=0;
  const client=createApiClient({fetcher:async url=>{if(page(url))return response({apiBase:address});requests++;if(requests===1){address='https://new.example';return {ok:false,status:502,json:async()=>{throw Error('HTML')}};}return response({completed:true});}});
  await client.refresh();assert.equal((await client.request('/api/complete',{method:'POST'})).completed,true);assert.equal(requests,2);
+});
+
+test('default same-origin configuration never queries GitHub or an external service',async()=>{
+ const urls=[];const client=createApiClient({fetcher:async url=>{urls.push(url);if(page(url))return response({apiBase:''});assert.equal(url,'/api/study-status');return response({ready:false,expected:80,available:20});}});
+ await client.refresh();assert.equal((await client.request('/api/study-status')).available,20);assert.equal(urls.length,2);assert.equal(urls.some(url=>/^https?:/.test(url)),false);
 });

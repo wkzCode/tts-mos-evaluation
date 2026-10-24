@@ -1,57 +1,86 @@
-# 本机后端与临时公网入口
+# 公网服务器部署运维
 
-将本目录 `scripts/` 中四个文件原样复制到网页仓库 `scripts/`。脚本要求 Node 26，macOS 包装文件默认使用 `/opt/homebrew/bin/node`。后端路径为 `backend/server.mjs`，前端配置为 `public/data/runtime.json`。
+服务器：`wangkz@183.36.243.124`，Ubuntu 22.04。网站、API和SQLite均运行在服务器上，不依赖Mac持续在线。未下载任何语音生成模型、未生成合成音频。
 
-## 启动
+## 已安装的专用服务
 
-在网页仓库根目录执行：
+部署根目录为 `/home/wangkz/tts-mos-evaluation`：
 
-```zsh
-export TTS_MOS_DATA_DIR="$(cd .. && pwd)/private-data"
-export CLOUDFLARED_BIN="/Users/wkz/Documents/Codex/2026-10-24/itu-t-p-808/work/ops/bin/cloudflared"
-/opt/homebrew/bin/node scripts/launch-local.mjs
+- `site/`：静态页面和 `backend/server.mjs`。
+- `private-data/`：SQLite、管理凭证及状态日志，位于site之外，目录权限700。
+- `runtime/node-v24.22.1-linux-x64/bin/node`：Node 24 LTS。
+- `runtime/cloudflared`：Cloudflare官方Linux amd64二进制，版本2026.10.3。
+- `runtime/tunnel-supervisor.py`：仅用系统Python标准库的隧道守护程序。
+
+`~/.config/systemd/user/tts-mos-web.service` 和 `tts-mos-tunnel.service` 已启用。用户会话本身已有 `Linger=yes`，因此SSH断开后继续运行，系统启动时由用户systemd启动。没有安装或改动系统级服务，没有更改nginx、防火墙或其他用户进程。
+
+网页服务监听 `0.0.0.0:18787`，公网直连已独立验证200；单元内设置 `TTS_MOS_DATA_DIR=/home/wangkz/tts-mos-evaluation/private-data`、`TRUST_PROXY_LOOPBACK=1`。后者仅让明确来自loopback的受控反向代理传递HTTP/HTTPS协议，管理员路由仍拒绝公网和代理请求。数据库为 `private-data/responses.sqlite`。不要把private-data复制进site或Git仓库。
+
+## 固定入口与HTTPS访问
+
+固定IP入口为 `http://183.36.243.124:18787/`，已配置为自动跳转到当前HTTPS地址。web单元通过 `PUBLIC_HTTPS_URL_FILE=/home/wangkz/tts-mos-evaluation/private-data/ops/current-url.txt` 动态读取健康入口，隧道地址改变后无需修改分享链接。本机管理员SSH转发不跳转。公网302、HTTPS首页200和正式测评未开放状态均已验证。
+
+本次启动得到的HTTPS入口：
+
+https://categories-exposure-competent-supreme.trycloudflare.com/
+
+通过实际公网检查：首页200、`/api/health`200、`/admin`403。因为网页与API部署同源，`public/data/runtime.json` 的 `apiBase` 保持空字符串，无需发布GitHub配置。
+
+这是无需Cloudflare账号的Quick Tunnel。隧道进程或服务器重启后地址可能变化。当前地址始终写在：
+
+```text
+/home/wangkz/tts-mos-evaluation/private-data/ops/current-url.txt
 ```
 
-上述命令只启动本机后端和 Cloudflare Quick Tunnel，并更新本地公开配置。需要把新入口写入 GitHub 时，使用：
+隧道状态写在同目录 `tunnel-status.json`，包括URL、主管/子进程PID、后端健康和公网健康。DNS传播延迟时状态为 `waiting_public_health`，每15秒继续探测，成功后自动恢复 `running`，不会因首轮超时永久停止。隧道异常退出由systemd自动重启；超过120秒仍未返回URL也会重启。普通web服务重启不会主动重启隧道，通常保持现有HTTPS地址。
 
-```zsh
-/opt/homebrew/bin/node scripts/launch-local.mjs --publish-config
+## 日常命令
+
+通过SSH以wangkz执行：
+
+```sh
+systemctl --user status tts-mos-web.service tts-mos-tunnel.service
+cat /home/wangkz/tts-mos-evaluation/private-data/ops/tunnel-status.json
+curl --fail http://127.0.0.1:18787/api/health
 ```
 
-`--publish-config` 会调用当前已登录的 `gh`，仅更新 `wkzCode/tts-mos-evaluation` 默认分支的 `public/data/runtime.json`。它从 GitHub 获取文件更新必需的版本字段，通过结构化 JSON 标准输入提交，不运行 shell 插值、不读取或打印 token，也不推送个人评分数据。首次使用可先运行 `gh auth status` 自行确认账号。没有此参数不会发布 GitHub 配置。
+更新网页代码后只重启web：
 
-macOS 可双击 `scripts/launch-local.command`；默认不带发布参数。也可在终端运行 `scripts/launch-local.command --publish-config`。通过 `TTS_MOS_NODE_BIN` 可覆盖包装脚本的 Node 路径。Finder 双击不会继承普通终端刚导出的环境变量，因此默认数据目录为**网页仓库父目录下的 `private-data`**。自定义环境请使用终端启动。`cloudflared` 优先使用 `CLOUDFLARED_BIN`，其次寻找仓库 `bin/`、当前任务 `work/ops/bin/`、Homebrew 路径或 PATH。
-
-脚本也支持 `--repo /绝对路径/网页仓库`，可从任意当前目录启动。默认端口8787，可用环境变量 `PORT` 调整。后端环境固定 `HOST=127.0.0.1`。数据目录被强制放在仓库之外；相对环境路径以调用时当前目录解析，建议总是使用绝对路径。
-
-## 运行状态与停止
-
-脚本先请求 `http://127.0.0.1:8787/api/health`，只有返回 `ok:true` 且 `app:"tts-mos-evaluation"` 才视为正确后端。如果已有正确后端，则复用并提示其数据目录无法在此确认，不将该进程纳入退出清理。如果端口被其他程序占用，启动会报错并保留对方进程。
-
-私有目录下的 `ops/` 包含：
-
-- `supervisor.lock`：主管进程PID、脚本位置、仓库位置及启动时间。
-- `status.json`：主管/后端/隧道PID、进程归属、健康状态、当前入口及配置发布时间。
-- `backend.log`、`tunnel.log`：仅在本机保存的追加日志。
-
-`ops/` 权限为700，日志和状态权限为600。记录下的已有后端若被复用，其PID保持 `null`，`backendOwned` 为 `false`。健康状态每15秒更新一次。首次域名传播较慢或GitHub配置发布暂时失败时，状态记为 `config-retry-wait`；主管进程以15、30、60、120、240秒递增、最长300秒的间隔，在隧道健康后自动重试。`configInFlight`、`configRetryAttempts`、`configNextRetryAt` 可供排查；成功后清除错误并恢复 `running`。一次仅运行一个配置任务，本地配置与远端发布分别记录已完成地址；已完成的地址不重复写入，远端内容相同时不再创建commit。
-
-保持启动终端打开。按 **Ctrl+C** 会停止本脚本创建的后端和隧道；收到 SIGTERM/SIGHUP 也会清理。另一个终端可运行：
-
-```zsh
-/opt/homebrew/bin/node scripts/stop-local.mjs
+```sh
+systemctl --user restart tts-mos-web.service
 ```
 
-停止命令需沿用启动时的 `TTS_MOS_DATA_DIR` 和 `--repo`。它会核对锁内PID与实际进程命令，再发SIGINT给主管进程。也可双击 `scripts/stop-local.command` 停止使用默认目录启动的实例。脚本不会按端口、进程名称或全局模式杀进程。只有记录中的旧PID已不存在时，下一次启动才自动回收旧锁。
+需要重启隧道时：
 
-## 临时入口更换
+```sh
+systemctl --user restart tts-mos-tunnel.service
+cat /home/wangkz/tts-mos-evaluation/private-data/ops/current-url.txt
+```
 
-Cloudflare Quick Tunnel 不需要账号，进程重启会得到新的 `https://随机.trycloudflare.com` 地址。主管进程会在隧道意外退出后重试，并在新地址通过 `/api/health` 后更新本地配置；带 `--publish-config` 的本次运行也会再次提交公开入口。连续8次隧道失败后停止，检查私有日志再重新运行。
+新URL可能需要短暂传播，检查状态后再向测试者提供。日志只写服务器私有目录：`ops/web.log`、`ops/cloudflared.log`、`ops/tunnel-supervisor.log`，文件权限600。日志为追加模式，长期使用可定期人工归档。
 
-参与者始终打开 [同一个评测网页](https://wkzcode.github.io/tts-mos-evaluation/)。网页入口保持不变，提交API从配置获取。更新 GitHub 配置后，Pages 重新部署可能需要片刻。前端可在提交失败后重取配置，并以公开 [GitHub Contents API](https://api.github.com/repos/wkzCode/tts-mos-evaluation/contents/public/data/runtime.json) 为备用入口发现来源；请求 `Accept: application/vnd.github.raw+json` 可直接读取 JSON，默认返回则需解码其 base64 `content`。此操作不需要客户端token。脚本不会修改前端的重试逻辑。
+停止本项目两个服务：
 
-关闭本机、断网或停止脚本会使临时API不可达；再次启动并发布新配置后可沿用网页链接。本脚本不安装登录启动项、不创建Cloudflare账号、不配置固定域名。
+```sh
+systemctl --user stop tts-mos-tunnel.service tts-mos-web.service
+```
 
-## 本次校验范围
+## 管理入口
 
-已完成两个 Node 文件的语法检查、两个 `.command` 的 zsh 语法检查和帮助命令校验。补充的 `config-recovery.test.mjs` 使用纯内存桩验证延迟健康恢复、发布失败重试、关闭发布、单任务去重、隧道替换、退避上限和远端内容幂等；可用 `/opt/homebrew/bin/node config-recovery.test.mjs` 在本说明所在目录重跑，不启动服务、不联网。按照任务要求未实际启动后端或隧道，未替用户执行配置发布；主agent需在复制后执行真实联调。
+管理员页面及导出API默认仅限loopback并需要管理token。先在自己的电脑建立SSH转发：
+
+```sh
+ssh -N -L 18787:127.0.0.1:18787 wangkz@183.36.243.124
+```
+
+随后在电脑浏览器打开 `http://127.0.0.1:18787/admin`。管理token位于服务器 `private-data/admin-token.txt`，不要放入网页、URL、公开仓库或终端共享日志。macOS可以在另一个本机终端把token直接复制到剪贴板而不打印：
+
+```sh
+ssh wangkz@183.36.243.124 'cat /home/wangkz/tts-mos-evaluation/private-data/admin-token.txt' | pbcopy
+```
+
+把剪贴板内容粘贴到管理页的密码输入框。该token从未被本次部署工具打印。
+
+## 数据备份
+
+使用SQLite在线备份方式生成一致性副本，或先停止web再复制整个private-data。不要在web正在写入时只拷贝主SQLite文件而忽略WAL。未来补齐合成音频后，先完成隔离测试与资源核验，再解除正式session锁定；当前部署阶段不执行音频生成。
