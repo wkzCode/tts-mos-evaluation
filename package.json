@@ -1,0 +1,12 @@
+{
+  "name": "chinese-tts-mos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.mjs",
+    "test": "node --test backend/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

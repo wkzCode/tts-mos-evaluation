@@ -1,0 +1,522 @@
+{
+  "study_id": "mandarin-naturalness-20-v1",
+  "title": "中文语音自然度测评",
+  "materials_status": "pending_server_generation",
+  "description": "20条测试文本已固定；合成音频将在服务器生成，当前仅提供操作练习。",
+  "samples": [
+    {
+      "id": "s-01a3640d37364632aa3a38fdd3068c80",
+      "text_id": "t05",
+      "text": "但并不是做出好产品的必要条件。",
+      "audio": "audio/s-01a3640d37364632aa3a38fdd3068c80.wav"
+    },
+    {
+      "id": "s-01b652b1e5b140ca9036ba36cd103e83",
+      "text_id": "t02",
+      "text": "我认为卢卡斯是个心口如一的人。",
+      "audio": "audio/s-01b652b1e5b140ca9036ba36cd103e83.wav"
+    },
+    {
+      "id": "s-036d771994054219b08392fc86d9272c",
+      "text_id": "t01",
+      "text": "但随着材料的进步，这些都已经不成问题了。",
+      "audio": "audio/s-036d771994054219b08392fc86d9272c.wav",
+      "duration_seconds": 4.46
+    },
+    {
+      "id": "s-08bdffd85b5a47188475b3d8d1971276",
+      "text_id": "t08",
+      "text": "一线城市地价上涨最为明显。",
+      "audio": "audio/s-08bdffd85b5a47188475b3d8d1971276.wav"
+    },
+    {
+      "id": "s-0ca0c8b4d0704de0bc4125c6f047c1aa",
+      "text_id": "t09",
+      "text": "我觉得汤米依然想留下。",
+      "audio": "audio/s-0ca0c8b4d0704de0bc4125c6f047c1aa.wav",
+      "duration_seconds": 2.57
+    },
+    {
+      "id": "s-0fe38445ae8d4d4aa4502a7e62075ffa",
+      "text_id": "t20",
+      "text": "卢卡斯描述了卢卡斯的所见所闻。",
+      "audio": "audio/s-0fe38445ae8d4d4aa4502a7e62075ffa.wav"
+    },
+    {
+      "id": "s-11ecd7afd7d8427584ca2912ac5c451c",
+      "text_id": "t09",
+      "text": "我觉得汤米依然想留下。",
+      "audio": "audio/s-11ecd7afd7d8427584ca2912ac5c451c.wav"
+    },
+    {
+      "id": "s-191a8c7326244e1f832537b41b022d34",
+      "text_id": "t09",
+      "text": "我觉得汤米依然想留下。",
+      "audio": "audio/s-191a8c7326244e1f832537b41b022d34.wav"
+    },
+    {
+      "id": "s-1be19ca546f24caea23294708f9e415a",
+      "text_id": "t11",
+      "text": "北京四块高溢价土地均来自北京大兴区。",
+      "audio": "audio/s-1be19ca546f24caea23294708f9e415a.wav"
+    },
+    {
+      "id": "s-1c87831297e74a14b0fb0b503e09c110",
+      "text_id": "t16",
+      "text": "四宗溢价在百分之四十以上。",
+      "audio": "audio/s-1c87831297e74a14b0fb0b503e09c110.wav"
+    },
+    {
+      "id": "s-2073253df3eb4f299b9f00cce5e447e2",
+      "text_id": "t12",
+      "text": "但她家有一张我的照片。",
+      "audio": "audio/s-2073253df3eb4f299b9f00cce5e447e2.wav"
+    },
+    {
+      "id": "s-21ef729f905d44128996037d08b21da5",
+      "text_id": "t13",
+      "text": "但这些数据可信么？",
+      "audio": "audio/s-21ef729f905d44128996037d08b21da5.wav"
+    },
+    {
+      "id": "s-2490fc6351c1477cad1b86470c4fd88b",
+      "text_id": "t04",
+      "text": "我告诉过他杰利改头换面了。",
+      "audio": "audio/s-2490fc6351c1477cad1b86470c4fd88b.wav",
+      "duration_seconds": 3.17
+    },
+    {
+      "id": "s-2d86f44cca2a475da64db35a3a61cdbd",
+      "text_id": "t17",
+      "text": "正是其他人可以让你开心。",
+      "audio": "audio/s-2d86f44cca2a475da64db35a3a61cdbd.wav",
+      "duration_seconds": 3.23
+    },
+    {
+      "id": "s-2f593679e026416e92d96e283e366926",
+      "text_id": "t03",
+      "text": "那你还站在这里和我谈什么？",
+      "audio": "audio/s-2f593679e026416e92d96e283e366926.wav"
+    },
+    {
+      "id": "s-38a284fd194d48e19457e76e3f5952c2",
+      "text_id": "t06",
+      "text": "半数的美国人可不这么想。",
+      "audio": "audio/s-38a284fd194d48e19457e76e3f5952c2.wav"
+    },
+    {
+      "id": "s-3b179a5fb6b44ee0ad804acfd104bae0",
+      "text_id": "t19",
+      "text": "你在整个过程中都会保持清醒。",
+      "audio": "audio/s-3b179a5fb6b44ee0ad804acfd104bae0.wav"
+    },
+    {
+      "id": "s-3bf5541c13554a4da7553bd4717de702",
+      "text_id": "t20",
+      "text": "卢卡斯描述了卢卡斯的所见所闻。",
+      "audio": "audio/s-3bf5541c13554a4da7553bd4717de702.wav"
+    },
+    {
+      "id": "s-3d4d84ed09f54ee1a94e08305d6f33bd",
+      "text_id": "t02",
+      "text": "我认为卢卡斯是个心口如一的人。",
+      "audio": "audio/s-3d4d84ed09f54ee1a94e08305d6f33bd.wav"
+    },
+    {
+      "id": "s-3e6c41c55c404130ba90d854ed521c5c",
+      "text_id": "t07",
+      "text": "老大我想你该看看这个。",
+      "audio": "audio/s-3e6c41c55c404130ba90d854ed521c5c.wav",
+      "duration_seconds": 2.81
+    },
+    {
+      "id": "s-3ff58641401b425b93937ded641ee8be",
+      "text_id": "t18",
+      "text": "除非你找个听话的人替上才行。",
+      "audio": "audio/s-3ff58641401b425b93937ded641ee8be.wav",
+      "duration_seconds": 3.44
+    },
+    {
+      "id": "s-432032fd4e7d4b6c98a17be6eba9b225",
+      "text_id": "t18",
+      "text": "除非你找个听话的人替上才行。",
+      "audio": "audio/s-432032fd4e7d4b6c98a17be6eba9b225.wav"
+    },
+    {
+      "id": "s-4397742b0ab14b8ab4f9983a285722d4",
+      "text_id": "t11",
+      "text": "北京四块高溢价土地均来自北京大兴区。",
+      "audio": "audio/s-4397742b0ab14b8ab4f9983a285722d4.wav"
+    },
+    {
+      "id": "s-47b2f2af846d45ac9fab6c8f9220278e",
+      "text_id": "t10",
+      "text": "他可能知道卡瑞娜会带孩子去哪儿。",
+      "audio": "audio/s-47b2f2af846d45ac9fab6c8f9220278e.wav",
+      "duration_seconds": 3.71
+    },
+    {
+      "id": "s-48b1e96720204673945586292775f01b",
+      "text_id": "t10",
+      "text": "他可能知道卡瑞娜会带孩子去哪儿。",
+      "audio": "audio/s-48b1e96720204673945586292775f01b.wav"
+    },
+    {
+      "id": "s-48cf307969334aca9b31b12cf7f2ae35",
+      "text_id": "t07",
+      "text": "老大我想你该看看这个。",
+      "audio": "audio/s-48cf307969334aca9b31b12cf7f2ae35.wav"
+    },
+    {
+      "id": "s-4b587bdca6a84a45a008883a803fb3f0",
+      "text_id": "t12",
+      "text": "但她家有一张我的照片。",
+      "audio": "audio/s-4b587bdca6a84a45a008883a803fb3f0.wav"
+    },
+    {
+      "id": "s-4d82f0a5d18848ccb67f22c082f402b4",
+      "text_id": "t14",
+      "text": "他是个感情迟钝的人。",
+      "audio": "audio/s-4d82f0a5d18848ccb67f22c082f402b4.wav"
+    },
+    {
+      "id": "s-4f86d14b2d3f40fc91c2da3a130aa045",
+      "text_id": "t16",
+      "text": "四宗溢价在百分之四十以上。",
+      "audio": "audio/s-4f86d14b2d3f40fc91c2da3a130aa045.wav",
+      "duration_seconds": 3.08
+    },
+    {
+      "id": "s-4ff27d65571942af89ac6bb720edd155",
+      "text_id": "t08",
+      "text": "一线城市地价上涨最为明显。",
+      "audio": "audio/s-4ff27d65571942af89ac6bb720edd155.wav",
+      "duration_seconds": 3.05
+    },
+    {
+      "id": "s-5670b13b1d2f4440b65ab88365ca6c9b",
+      "text_id": "t13",
+      "text": "但这些数据可信么？",
+      "audio": "audio/s-5670b13b1d2f4440b65ab88365ca6c9b.wav"
+    },
+    {
+      "id": "s-5a73009433bb447b941c15898978e382",
+      "text_id": "t08",
+      "text": "一线城市地价上涨最为明显。",
+      "audio": "audio/s-5a73009433bb447b941c15898978e382.wav"
+    },
+    {
+      "id": "s-5d3b0e19b0ff444ebcc0b024d23d2fb2",
+      "text_id": "t06",
+      "text": "半数的美国人可不这么想。",
+      "audio": "audio/s-5d3b0e19b0ff444ebcc0b024d23d2fb2.wav"
+    },
+    {
+      "id": "s-60e044d44b7c410eb09cca55edfdeb80",
+      "text_id": "t18",
+      "text": "除非你找个听话的人替上才行。",
+      "audio": "audio/s-60e044d44b7c410eb09cca55edfdeb80.wav"
+    },
+    {
+      "id": "s-65c93b0bb9b54cb990b3e173845f2368",
+      "text_id": "t01",
+      "text": "但随着材料的进步，这些都已经不成问题了。",
+      "audio": "audio/s-65c93b0bb9b54cb990b3e173845f2368.wav"
+    },
+    {
+      "id": "s-6a577abc43c34b069518ef5dc5fe13c4",
+      "text_id": "t19",
+      "text": "你在整个过程中都会保持清醒。",
+      "audio": "audio/s-6a577abc43c34b069518ef5dc5fe13c4.wav"
+    },
+    {
+      "id": "s-6b1f70eb2cdc499ab085b49b35f68174",
+      "text_id": "t20",
+      "text": "卢卡斯描述了卢卡斯的所见所闻。",
+      "audio": "audio/s-6b1f70eb2cdc499ab085b49b35f68174.wav"
+    },
+    {
+      "id": "s-6eae0ac299bb4262a1fd87fd17e6fa0d",
+      "text_id": "t15",
+      "text": "体育圈内的人对资本运作能力或许相对薄弱。",
+      "audio": "audio/s-6eae0ac299bb4262a1fd87fd17e6fa0d.wav"
+    },
+    {
+      "id": "s-717c993548414b219d6b5be561a90f71",
+      "text_id": "t15",
+      "text": "体育圈内的人对资本运作能力或许相对薄弱。",
+      "audio": "audio/s-717c993548414b219d6b5be561a90f71.wav",
+      "duration_seconds": 5.87
+    },
+    {
+      "id": "s-7581c14879a344c894796abd0af950b1",
+      "text_id": "t17",
+      "text": "正是其他人可以让你开心。",
+      "audio": "audio/s-7581c14879a344c894796abd0af950b1.wav"
+    },
+    {
+      "id": "s-77992496fef34f4e9d24e44aeb51b012",
+      "text_id": "t20",
+      "text": "卢卡斯描述了卢卡斯的所见所闻。",
+      "audio": "audio/s-77992496fef34f4e9d24e44aeb51b012.wav",
+      "duration_seconds": 3.95
+    },
+    {
+      "id": "s-77dac458a7354bfc84b5e1b5b33eead8",
+      "text_id": "t13",
+      "text": "但这些数据可信么？",
+      "audio": "audio/s-77dac458a7354bfc84b5e1b5b33eead8.wav"
+    },
+    {
+      "id": "s-7fa427d8209d4e4d8e82c3be6dc8730d",
+      "text_id": "t09",
+      "text": "我觉得汤米依然想留下。",
+      "audio": "audio/s-7fa427d8209d4e4d8e82c3be6dc8730d.wav"
+    },
+    {
+      "id": "s-82f894b650bc413fb308170e9378ca86",
+      "text_id": "t04",
+      "text": "我告诉过他杰利改头换面了。",
+      "audio": "audio/s-82f894b650bc413fb308170e9378ca86.wav"
+    },
+    {
+      "id": "s-84044ce4c265480db12ba74c2604f56f",
+      "text_id": "t06",
+      "text": "半数的美国人可不这么想。",
+      "audio": "audio/s-84044ce4c265480db12ba74c2604f56f.wav",
+      "duration_seconds": 2.66
+    },
+    {
+      "id": "s-8558e91230c6430090c74fdaa76371a1",
+      "text_id": "t04",
+      "text": "我告诉过他杰利改头换面了。",
+      "audio": "audio/s-8558e91230c6430090c74fdaa76371a1.wav"
+    },
+    {
+      "id": "s-8c0f8ac82409413db4bc7b5effd23167",
+      "text_id": "t02",
+      "text": "我认为卢卡斯是个心口如一的人。",
+      "audio": "audio/s-8c0f8ac82409413db4bc7b5effd23167.wav",
+      "duration_seconds": 3.89
+    },
+    {
+      "id": "s-95ee9f25dfd14d2a81dfbdf6251fe0d1",
+      "text_id": "t15",
+      "text": "体育圈内的人对资本运作能力或许相对薄弱。",
+      "audio": "audio/s-95ee9f25dfd14d2a81dfbdf6251fe0d1.wav"
+    },
+    {
+      "id": "s-9aa7da3302af45b5906a94b46a05ab7e",
+      "text_id": "t03",
+      "text": "那你还站在这里和我谈什么？",
+      "audio": "audio/s-9aa7da3302af45b5906a94b46a05ab7e.wav"
+    },
+    {
+      "id": "s-9ab1665f8aa549199675a579f61354c6",
+      "text_id": "t10",
+      "text": "他可能知道卡瑞娜会带孩子去哪儿。",
+      "audio": "audio/s-9ab1665f8aa549199675a579f61354c6.wav"
+    },
+    {
+      "id": "s-9c3231933b0745a7b36ed755c7d57742",
+      "text_id": "t19",
+      "text": "你在整个过程中都会保持清醒。",
+      "audio": "audio/s-9c3231933b0745a7b36ed755c7d57742.wav",
+      "duration_seconds": 3.35
+    },
+    {
+      "id": "s-a25f833bdfcf43299440357754071dc6",
+      "text_id": "t17",
+      "text": "正是其他人可以让你开心。",
+      "audio": "audio/s-a25f833bdfcf43299440357754071dc6.wav"
+    },
+    {
+      "id": "s-a263c97aabeb46799b847dbdcdfd0839",
+      "text_id": "t08",
+      "text": "一线城市地价上涨最为明显。",
+      "audio": "audio/s-a263c97aabeb46799b847dbdcdfd0839.wav"
+    },
+    {
+      "id": "s-a3a2ec3de3f04e2fb9c478f84bfa1f2f",
+      "text_id": "t11",
+      "text": "北京四块高溢价土地均来自北京大兴区。",
+      "audio": "audio/s-a3a2ec3de3f04e2fb9c478f84bfa1f2f.wav"
+    },
+    {
+      "id": "s-a976f328718d40cca5011f8dc7b42227",
+      "text_id": "t05",
+      "text": "但并不是做出好产品的必要条件。",
+      "audio": "audio/s-a976f328718d40cca5011f8dc7b42227.wav"
+    },
+    {
+      "id": "s-ae3bad20fe8847a4a24c4b06677e9045",
+      "text_id": "t01",
+      "text": "但随着材料的进步，这些都已经不成问题了。",
+      "audio": "audio/s-ae3bad20fe8847a4a24c4b06677e9045.wav"
+    },
+    {
+      "id": "s-b293261655a046ce88a910559552eb33",
+      "text_id": "t11",
+      "text": "北京四块高溢价土地均来自北京大兴区。",
+      "audio": "audio/s-b293261655a046ce88a910559552eb33.wav",
+      "duration_seconds": 5.0
+    },
+    {
+      "id": "s-b4b357cac2b54ed6a62b417ad0ca3bdc",
+      "text_id": "t17",
+      "text": "正是其他人可以让你开心。",
+      "audio": "audio/s-b4b357cac2b54ed6a62b417ad0ca3bdc.wav"
+    },
+    {
+      "id": "s-b6c388131e6843768ee732976e54a420",
+      "text_id": "t06",
+      "text": "半数的美国人可不这么想。",
+      "audio": "audio/s-b6c388131e6843768ee732976e54a420.wav"
+    },
+    {
+      "id": "s-b88ec2d610c54355ae723280a5947f40",
+      "text_id": "t14",
+      "text": "他是个感情迟钝的人。",
+      "audio": "audio/s-b88ec2d610c54355ae723280a5947f40.wav"
+    },
+    {
+      "id": "s-b932a5f992574814ab5f32d387278f5d",
+      "text_id": "t18",
+      "text": "除非你找个听话的人替上才行。",
+      "audio": "audio/s-b932a5f992574814ab5f32d387278f5d.wav"
+    },
+    {
+      "id": "s-bc0e7ca2e18740069dc4e90abee9954e",
+      "text_id": "t13",
+      "text": "但这些数据可信么？",
+      "audio": "audio/s-bc0e7ca2e18740069dc4e90abee9954e.wav",
+      "duration_seconds": 2.36
+    },
+    {
+      "id": "s-c1c00626ca2e4010b274e34cfea72738",
+      "text_id": "t10",
+      "text": "他可能知道卡瑞娜会带孩子去哪儿。",
+      "audio": "audio/s-c1c00626ca2e4010b274e34cfea72738.wav"
+    },
+    {
+      "id": "s-c640afb718c44ab189eb890c8abd04c5",
+      "text_id": "t14",
+      "text": "他是个感情迟钝的人。",
+      "audio": "audio/s-c640afb718c44ab189eb890c8abd04c5.wav",
+      "duration_seconds": 3.05
+    },
+    {
+      "id": "s-c92f3ebec222461da86e0487da202c99",
+      "text_id": "t01",
+      "text": "但随着材料的进步，这些都已经不成问题了。",
+      "audio": "audio/s-c92f3ebec222461da86e0487da202c99.wav"
+    },
+    {
+      "id": "s-ce938f52c4d0401f98380cc2e6715b4c",
+      "text_id": "t14",
+      "text": "他是个感情迟钝的人。",
+      "audio": "audio/s-ce938f52c4d0401f98380cc2e6715b4c.wav"
+    },
+    {
+      "id": "s-cfb7b618947a45c09eb120e6d590c8e0",
+      "text_id": "t16",
+      "text": "四宗溢价在百分之四十以上。",
+      "audio": "audio/s-cfb7b618947a45c09eb120e6d590c8e0.wav"
+    },
+    {
+      "id": "s-d1645907dd1140bdbb8326c989655d9f",
+      "text_id": "t07",
+      "text": "老大我想你该看看这个。",
+      "audio": "audio/s-d1645907dd1140bdbb8326c989655d9f.wav"
+    },
+    {
+      "id": "s-d1ed807653794b059728e90efe9e099d",
+      "text_id": "t05",
+      "text": "但并不是做出好产品的必要条件。",
+      "audio": "audio/s-d1ed807653794b059728e90efe9e099d.wav",
+      "duration_seconds": 3.53
+    },
+    {
+      "id": "s-d480ede1fda44ce687fa61f0c850b09e",
+      "text_id": "t19",
+      "text": "你在整个过程中都会保持清醒。",
+      "audio": "audio/s-d480ede1fda44ce687fa61f0c850b09e.wav"
+    },
+    {
+      "id": "s-d8bc85d711b84d88993f2a496cda1a2d",
+      "text_id": "t16",
+      "text": "四宗溢价在百分之四十以上。",
+      "audio": "audio/s-d8bc85d711b84d88993f2a496cda1a2d.wav"
+    },
+    {
+      "id": "s-de63a542ea804d198e4bf293546ece8c",
+      "text_id": "t15",
+      "text": "体育圈内的人对资本运作能力或许相对薄弱。",
+      "audio": "audio/s-de63a542ea804d198e4bf293546ece8c.wav"
+    },
+    {
+      "id": "s-ea2fb18a985641a7ae3862801d265e45",
+      "text_id": "t02",
+      "text": "我认为卢卡斯是个心口如一的人。",
+      "audio": "audio/s-ea2fb18a985641a7ae3862801d265e45.wav"
+    },
+    {
+      "id": "s-ea3f4e27236e4c68a830760a520c85b9",
+      "text_id": "t04",
+      "text": "我告诉过他杰利改头换面了。",
+      "audio": "audio/s-ea3f4e27236e4c68a830760a520c85b9.wav"
+    },
+    {
+      "id": "s-eb64d34edf0540e79024bddf65f0d0f7",
+      "text_id": "t12",
+      "text": "但她家有一张我的照片。",
+      "audio": "audio/s-eb64d34edf0540e79024bddf65f0d0f7.wav"
+    },
+    {
+      "id": "s-ee9528d83d4c471babcb8aa68848f37f",
+      "text_id": "t12",
+      "text": "但她家有一张我的照片。",
+      "audio": "audio/s-ee9528d83d4c471babcb8aa68848f37f.wav",
+      "duration_seconds": 2.51
+    },
+    {
+      "id": "s-f125178ddfc447ee8a4085dd9c7eb1c9",
+      "text_id": "t03",
+      "text": "那你还站在这里和我谈什么？",
+      "audio": "audio/s-f125178ddfc447ee8a4085dd9c7eb1c9.wav"
+    },
+    {
+      "id": "s-f92d2948024e4d46b0ec9b27c581a5ce",
+      "text_id": "t07",
+      "text": "老大我想你该看看这个。",
+      "audio": "audio/s-f92d2948024e4d46b0ec9b27c581a5ce.wav"
+    },
+    {
+      "id": "s-fb74a75d23384067b06da24a03aea467",
+      "text_id": "t03",
+      "text": "那你还站在这里和我谈什么？",
+      "audio": "audio/s-fb74a75d23384067b06da24a03aea467.wav",
+      "duration_seconds": 2.84
+    },
+    {
+      "id": "s-fbee694b8bf24ef084716b96cc05a5f7",
+      "text_id": "t05",
+      "text": "但并不是做出好产品的必要条件。",
+      "audio": "audio/s-fbee694b8bf24ef084716b96cc05a5f7.wav"
+    }
+  ],
+  "practice": [
+    {
+      "id": "practice-01",
+      "text": "你能救全世界吗？",
+      "audio": "audio/practice-01.wav",
+      "duration_seconds": 2.06
+    },
+    {
+      "id": "practice-02",
+      "text": "我要亲身感受它。",
+      "audio": "audio/practice-02.wav",
+      "duration_seconds": 2.09
+    }
+  ]
+}
