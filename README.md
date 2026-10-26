@@ -19,7 +19,7 @@ TTS_MOS_DATA_DIR="$HOME/.local/share/tts-mos" HOST=0.0.0.0 PORT=18787 node backe
 
 私有数据目录必须放在源码仓库和public之外。Linux默认目录为 `$XDG_DATA_HOME/tts-mos` 或 `~/.local/share/tts-mos`；也可用 `TTS_MOS_DATA_DIR` 指定固定服务器目录。目录包含：
 
-- `responses.sqlite`、`responses.sqlite-wal`、`responses.sqlite-shm`：参与者身份、随机会话凭证与评分。
+- `responses.sqlite`、`responses.sqlite-wal`、`responses.sqlite-shm`：参与者姓名、性别、身份、随机会话凭证与评分。
 - `admin-token.txt`：首次启动自动生成，文件权限0600。凭证不写日志，不发往前端。
 - `study-key.json`：研究者独立放入的匿名音频到系统映射。
 
@@ -79,7 +79,7 @@ ALLOWED_ORIGINS="https://study.example.org" TTS_MOS_DATA_DIR="/私有数据目�
 
 ## 测评与保存
 
-参与者先填写姓名与身份，可选单位；确认设备并完成两条练习后进入正式测评。80条匿名随机混排，每批20条，每次只呈现一条。自定义播放器不提供拖动和倍速；完整播放后才能选择1–5整数自然度评分。可重听或返回修改，主键(session_id,sample_id)确保修改覆盖且不重复计票。
+参与者先填写姓名、性别与身份，可选单位；性别须明确选择男或女。确认设备并完成两条练习后进入正式测评。80条匿名随机混排，每批20条，每次只呈现一条。自定义播放器不提供拖动和倍速；完整播放后才能选择1–5整数自然度评分。可重听或返回修改，主键(session_id,sample_id)确保修改覆盖且不重复计票。
 
 后端验证会话、材料版本、音频ID、评分、ended事件、有效时长及听取时长。浏览器报告无法作为反作弊的绝对证明；本工具用于合作式主观测评。设备提示音仅检查播放设备，不是听力诊断。
 
@@ -104,8 +104,8 @@ ssh -N -L 18788:127.0.0.1:18787 服务器登录账号@服务器地址
 ## API
 
 - GET `/api/study-status`：仅返回 `{ready,expected:80,available}`，不包含身份、模型映射或结果；available是存在且有有效正数时长的正式音频数。
-- POST `/api/sessions`：`{name,role,organization?,device_confirmed:true}`，返回会话id、随机token及order。
-- GET `/api/session`：带 `Authorization: Bearer <session token>`，只返回此会话评分及状态。
+- POST `/api/sessions`：`{name,gender?,role,organization?,device_confirmed:true}`，返回会话id、随机token及order。
+- GET `/api/session`：带 `Authorization: Bearer <session token>`，只返回此会话身份（含gender）、评分及状态。
 - PUT `/api/ratings`：带会话token，`{sample_id,score,listened_seconds,duration_seconds,ended:true}`。
 - POST `/api/complete`：带会话token；未满80条拒绝完成。
 - GET `/api/admin/summary`、`/api/admin/export`：仅本机及管理token可访问。
@@ -121,3 +121,9 @@ node --check backend/server.mjs
 ```
 
 集成测试在临时隔离目录运行，覆盖身份校验、随机顺序、播放门控、整数范围、覆盖计分、不完整提交拒绝、完成锁定、CORS、代理管理访问拒绝、私有导出、CSV公式处理、路径保护和请求大小限制。测试还覆盖pending状态、20/80文件计数、完整文件但显式pending仍锁定、缺失练习、无效时长及无数据库写入的两条练习预览。隔离临时目录中的非音频marker文件仅测试存在规则，不产生可播放音频或研究评分。同时验证公网Host与端口严格同源、显式ALLOWED_ORIGINS、默认客户端不访问外部配置、公开Host无法访问管理页。浏览器视觉可使用已有练习验收；完整80段正式音频播放须等待真实材料备齐后验收。
+
+## 性别字段与旧会话兼容
+
+姓名、性别与身份信息仅用于本次测评。新报名表要求明确选择男或女；个人JSON、个人CSV和管理员CSV均包含gender，旧会话未填写时导出空字符串。后端兼容旧客户端缺失或空gender，非空仅接受男或女，不从姓名或身份推断性别。
+
+启动时在事务中检查sessions结构，旧库只新增 `gender TEXT NOT NULL DEFAULT ''`，重复启动不会重复迁移。原会话id、token、评分、完成状态保持不变，既有参与者继续恢复和评分，无需重测或更换study_id/音频UUID。正式发布前由部署者按既有流程备份数据库；本次本地回归仅使用隔离测试库。
